@@ -50,6 +50,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb,
 	void *mem_priv;
 	int plane, ret, export_fd = 0;
 
+
 	/* Allocate memory for all planes in this buffer */
 	for (plane = 0; plane < vb->num_planes; ++plane) {
 		mem_priv = call_memop(q, plane, alloc, q->alloc_ctx[plane],
