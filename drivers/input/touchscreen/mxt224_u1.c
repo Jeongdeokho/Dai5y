@@ -214,6 +214,10 @@ static DEFINE_SEMAPHORE(s2w_sem);
 bool s2w_enabled = true;
 extern bool s2w_prox_near;
 
+/* this function is Disabled, we get black screen at random times,
+ * looks like display driver cant handle that.
+ */
+#if 0
 static void slide2wake_force_wakeup(void)
 {
 	int state;
@@ -226,6 +230,7 @@ static void slide2wake_force_wakeup(void)
 	msleep(100);
 	mutex_unlock(&s2w_lock);
 }
+#endif
 
 void slide2wake_setdev(struct input_dev *input_device)
 {
@@ -1306,7 +1311,7 @@ static void report_input_data(struct mxt224_data *data)
 			if (wake_start == 1 && data->fingers[0].x > x_hi) {
 				printk(KERN_ERR "[TSP] slide2wake up at: %4d\n",
 					data->fingers[i].x);
-				slide2wake_force_wakeup();
+				/* slide2wake_force_wakeup(); */
 				slide2wake_pwrtrigger();
 			}
 			wake_start = 0;
