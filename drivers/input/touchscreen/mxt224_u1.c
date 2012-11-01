@@ -27,6 +27,7 @@
 #include <linux/firmware.h>
 #include <mach/cpufreq.h>
 #include <linux/input/mt.h>
+#include <linux/wakelock.h>
 
 #define OBJECT_TABLE_START_ADDRESS	7
 #define OBJECT_TABLE_ELEMENT_SIZE	6
@@ -209,28 +210,24 @@ static void mxt224_optical_gain(uint16_t dbg_mode);
 static struct input_dev *slide2wake_dev;
 extern void request_suspend_state(int);
 extern int get_suspend_state(void);
-static DEFINE_MUTEX(s2w_lock);
-static DEFINE_SEMAPHORE(s2w_sem);
-bool s2w_enabled = true;
-extern bool s2w_prox_near;
+static struct wake_lock wl_s2w;
+bool s2w_enabled = false;
+static unsigned int wake_start = -1;
+static unsigned int wake_start_y = -100;
+static unsigned int x_lo;
+static unsigned int x_hi;
+static unsigned int y_tolerance = 132;
 
-/* this function is Disabled, we get black screen at random times,
- * looks like display driver cant handle that.
- */
-#if 0
 static void slide2wake_force_wakeup(void)
 {
 	int state;
 
-	mutex_lock(&s2w_lock);
 	state = get_suspend_state();
 	printk(KERN_ERR "[TSP] suspend state: %d\n", state);
 	if (state != 0)
 		request_suspend_state(0);
 	msleep(100);
-	mutex_unlock(&s2w_lock);
 }
-#endif
 
 void slide2wake_setdev(struct input_dev *input_device)
 {
@@ -245,16 +242,17 @@ static void slide2wake_presspwr(struct work_struct *slide2wake_presspwr_work)
 	msleep(100);
 	input_event(slide2wake_dev, EV_KEY, KEY_POWER, 0);
 	input_event(slide2wake_dev, EV_SYN, 0, 0);
-	msleep(2000);
-	mutex_unlock(&s2w_lock);
+	msleep(1000);
+	wake_unlock(&wl_s2w);
 }
 
 static DECLARE_WORK(slide2wake_presspwr_work, slide2wake_presspwr);
 
 void slide2wake_pwrtrigger(void)
 {
-	if (mutex_trylock(&s2w_lock))
-		schedule_work(&slide2wake_presspwr_work);
+	if (wake_lock_active(&wl_s2w)) return;
+	wake_lock_timeout(&wl_s2w, msecs_to_jiffies(2000));
+	schedule_work(&slide2wake_presspwr_work);
 }
 
 static int read_mem(struct mxt224_data *data, u16 reg, u8 len, u8 * buf)
@@ -1261,25 +1259,15 @@ static int __devinit mxt224_init_touch_driver(struct mxt224_data *data)
 	return ret;
 }
 
-static unsigned int wake_start = 0;
-static unsigned int x_lo;
-static unsigned int x_hi;
-
 static void report_input_data(struct mxt224_data *data)
 {
-	int i, ret = 0;
+	int i;
 	static unsigned int level = ~0;
 	bool tsp_state = false;
 	bool check_press = false;
 	u16 object_address = 0;
 	u16 size = 1;
 	u8 value;
-
-	if (s2w_enabled) {
-		ret = down_trylock(&s2w_sem);
-		if (ret)
-			printk(KERN_ERR "[TSP] slide2invert SEM cannot be aquired\n");
-	}
 
 	touch_is_pressed = 0;
 
@@ -1290,16 +1278,6 @@ static void report_input_data(struct mxt224_data *data)
 		if (TSP_STATE_INACTIVE == data->fingers[i].z)
 			continue;
 
-		// slide2wake gesture start
-		if (s2w_enabled && copy_data->touch_is_pressed_arr[i] == 1 &&
-			!copy_data->mxt224_enabled && !s2w_prox_near) {
-			if (data->fingers[0].x < x_lo) {
-				printk(KERN_ERR "[TSP] slide2wake down at: %4d\n",
-					data->fingers[0].x);
-				wake_start = 1;
-			}
-		}
-
 		/* for release */
 		if (data->fingers[i].z == TSP_STATE_RELEASE) {
 			input_mt_slot(data->input_dev, i);
@@ -1308,13 +1286,13 @@ static void report_input_data(struct mxt224_data *data)
 			data->fingers[i].z = TSP_STATE_INACTIVE;
 
 			// slide2wake trigger
-			if (wake_start == 1 && data->fingers[0].x > x_hi) {
+			if (wake_start == i && data->fingers[i].x > x_hi && 
+					abs(wake_start_y - data->fingers[i].y) < y_tolerance ) {
 				printk(KERN_ERR "[TSP] slide2wake up at: %4d\n",
 					data->fingers[i].x);
-				/* slide2wake_force_wakeup(); */
 				slide2wake_pwrtrigger();
 			}
-			wake_start = 0;
+			wake_start = -1;
 		/* logging */
 #ifdef __TSP_DEBUG
 			printk(KERN_ERR "[TSP] Up[%d] %4d,%4d\n", i,
@@ -1344,6 +1322,17 @@ static void report_input_data(struct mxt224_data *data)
 				 data->fingers[i].component);
 #endif
 
+		// slide2wake gesture start
+		if (s2w_enabled && copy_data->touch_is_pressed_arr[i] == 1 &&
+			!copy_data->mxt224_enabled) {
+			if (data->fingers[i].x < x_lo) {
+				printk(KERN_ERR "[TSP] slide2wake down at: %4d\n",
+					data->fingers[i].x);
+				wake_start = i;
+				wake_start_y = data->fingers[i].y;
+			}
+		}
+
 		if (copy_data->touch_is_pressed_arr[i] == 1)
 			check_press = true;
 
@@ -1369,7 +1358,6 @@ static void report_input_data(struct mxt224_data *data)
 		}
 #endif
 	}
-
 	data->finger_mask = 0;
 	copy_data->touch_state = 0;
 	input_sync(data->input_dev);
@@ -1418,9 +1406,6 @@ static void report_input_data(struct mxt224_data *data)
 			copy_data->lock_status = 1;
 		}
 	}
-
-	if (s2w_enabled)
-		up(&s2w_sem);
 }
 
 void palm_recovery(void)
@@ -2081,7 +2066,6 @@ static void mxt224_late_resume(struct early_suspend *h)
 	struct mxt224_data *data = container_of(h, struct mxt224_data,
 						early_suspend);
 	bool ta_status = 0;
-	copy_data->mxt224_enabled = 1;
 
 	mxt224_internal_resume(data);
 	if (s2w_enabled)
@@ -2089,6 +2073,7 @@ static void mxt224_late_resume(struct early_suspend *h)
 	else
 		enable_irq(data->client->irq);
 
+	copy_data->mxt224_enabled = 1;
 #ifdef CONFIG_TARGET_LOCALE_KOR
 	copy_data->is_inputmethod = 0;
 #endif
@@ -3263,9 +3248,9 @@ static ssize_t slide2wake_store(struct device *dev,
 
 	if (ret != 1)
 		return -EINVAL;
-	else
-		s2w_enabled = value ? true : false;
-		mxt224_gpio_sleep_mode(value ? true : false);
+
+	s2w_enabled = value ? true : false;
+	mxt224_gpio_sleep_mode(s2w_enabled);
 
 	return size;
 }
@@ -3623,8 +3608,11 @@ static int __devinit mxt224_probe(struct i2c_client *client,
 	if (ret)
 		goto err_backup;
 
-	x_lo = pdata->max_x / 10;	/* 10% display width */
-	x_hi = (pdata->max_x / 10) * 9;	/* 90% display width */
+	wake_lock_init(&wl_s2w, WAKE_LOCK_SUSPEND, "slide2wake");
+	x_lo = pdata->max_x / 10 * 1;	/* 10% display width */
+	x_hi = pdata->max_x / 10 * 9;	/* 90% display width */
+	y_tolerance = pdata->max_y / 10 * 3 / 2;
+	mxt224_gpio_sleep_mode(s2w_enabled);
 
 	/* reset the touch IC. */
 	ret = mxt224_reset(data);
@@ -3878,6 +3866,7 @@ static int __devexit mxt224_remove(struct i2c_client *client)
 {
 	struct mxt224_data *data = i2c_get_clientdata(client);
 
+	wake_lock_destroy(&wl_s2w);
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	unregister_early_suspend(&data->early_suspend);
 #endif
