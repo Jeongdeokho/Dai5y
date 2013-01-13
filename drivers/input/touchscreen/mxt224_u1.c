@@ -93,6 +93,7 @@
 #define MAX_USING_FINGER_NUM 10
 
 #define MXT224_AUTOCAL_WAIT_TIME		2000
+#define TOUCH_LOCK_FREQ			200000
 
 #if defined(U1_EUR_TARGET)
 static bool gbfilter;
@@ -200,7 +201,10 @@ struct mxt224_data {
 	bool enabled;
 };
 
+
 #define CLEAR_MEDIAN_FILTER_ERROR
+unsigned int lock_freq = TOUCH_LOCK_FREQ;
+
 struct mxt224_data *copy_data;
 int touch_is_pressed;
 EXPORT_SYMBOL(touch_is_pressed);
@@ -1272,7 +1276,7 @@ static void report_input_data(struct mxt224_data *data)
 	touch_is_pressed = 0;
 
 	if (level == ~0)
-		exynos_cpufreq_get_level(500000, &level);
+		exynos_cpufreq_get_level(lock_freq, &level);
 
 	for (i = 0; i < data->num_fingers; i++) {
 		if (TSP_STATE_INACTIVE == data->fingers[i].z)
@@ -1404,6 +1408,7 @@ static void report_input_data(struct mxt224_data *data)
 				DVFS_LOCK_ID_TSP,
 				level);
 			copy_data->lock_status = 1;
+			level = ~0;
 		}
 	}
 }
@@ -3231,6 +3236,29 @@ static ssize_t tsp_touchtype_show(struct device *dev,
 	return strlen(buf);
 }
 
+static ssize_t touch_lock_freq_show(struct device *dev,
+				struct device_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%u\n", lock_freq);
+}
+
+static ssize_t touch_lock_freq_store(struct device *dev,
+				struct device_attribute *attr,
+				const char *buf, size_t size)
+{
+	int ret;
+	unsigned int value;
+
+	ret = sscanf(buf, "%d\n", &value);
+
+	if (ret != 1)
+		return -EINVAL;
+	else
+		lock_freq = value;
+
+	return size;
+}
+
 static ssize_t slide2wake_show(struct device *dev,
 				  struct device_attribute *attr, char *buf)
 {
@@ -3323,6 +3351,8 @@ static DEVICE_ATTR(object_write, S_IRUGO | S_IWUSR | S_IWGRP, NULL,
 		   qt602240_object_setting);
 static DEVICE_ATTR(dbg_switch, S_IRUGO | S_IWUSR | S_IWGRP, NULL,
 		   mxt224_debug_setting);
+static DEVICE_ATTR(tsp_touch_freq, S_IRUGO | S_IWUSR | S_IWGRP,
+	touch_lock_freq_show, touch_lock_freq_store);
 static DEVICE_ATTR(tsp_slide2wake, S_IRUGO | S_IWUSR | S_IWGRP,
 	slide2wake_show, slide2wake_store);
 
@@ -3711,6 +3741,10 @@ static int __devinit mxt224_probe(struct i2c_client *client,
 	if (device_create_file(sec_touchscreen, &dev_attr_tsp_threshold) < 0)
 		printk(KERN_ERR "Failed to create device file(%s)!\n",
 		       dev_attr_tsp_threshold.attr.name);
+
+	if (device_create_file(sec_touchscreen, &dev_attr_tsp_touch_freq) < 0)
+		printk(KERN_ERR "Failed to create device file(%s)!\n",
+			dev_attr_tsp_touch_freq.attr.name);
 
 	if (device_create_file(sec_touchscreen, &dev_attr_tsp_slide2wake) < 0)
 		printk(KERN_ERR "Failed to create device file(%s)!\n",
