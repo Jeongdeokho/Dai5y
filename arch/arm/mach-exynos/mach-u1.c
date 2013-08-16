@@ -528,7 +528,7 @@ void sii9234_power_onoff(bool on)
 		usleep_range(10000, 20000);
 		gpio_set_value(GPIO_MHL_RST, GPIO_LEVEL_HIGH);
 #ifdef CONFIG_TARGET_LOCALE_KOR
-		gpio_set_value(GPIO_HDMI_EN, GPIO_LEVEL_HIGH);
+		gpio_set_value(GPIO_HDMI_EN, GPIO_LEVEL_LOW);
 #else
 		if (system_rev < 7)
 			gpio_set_value(GPIO_HDMI_EN, GPIO_LEVEL_LOW);
@@ -2423,8 +2423,8 @@ static struct lcd_platform_data ld9040_platform_data = {
 	.gpio_cfg_lateresume = lcd_gpio_cfg_lateresume,
 	/* it indicates whether lcd panel is enabled from u-boot. */
 	.lcd_enabled = 1,
-	.reset_delay = 20,	/* 10ms */
-	.power_on_delay = 20,	/* 20ms */
+	.reset_delay = 10,	/* 10ms */
+	.power_on_delay = 15,	/* 15ms */
 	.power_off_delay = 200,	/* 120ms */
 	.pdata = &u1_panel_data,
 };
@@ -5446,7 +5446,7 @@ static u8 t8_config[] = { GEN_ACQUISITIONCONFIG_T8,
 static u8 t9_config[] = { TOUCH_MULTITOUCHSCREEN_T9,
 	131, 0, 0, 19, 11, 0, 32, MXT224_THRESHOLD_BATT, 2, 1,
 	0,
-	15,			/* MOVHYSTI */
+	2,			/* MOVHYSTI */
 	1, MXT224_MOVFILTER_BATT, MXT224_MAX_MT_FINGERS, 5, 40, 10, 31, 3,
 	223, 1, 0, 0, 0, 0, 143, 55, 143, 90, 18
 };
@@ -5546,7 +5546,7 @@ static u8 t8_config_e[] = { GEN_ACQUISITIONCONFIG_T8,
 static u8 t9_config_e[] = { TOUCH_MULTITOUCHSCREEN_T9,
 	139, 0, 0, 19, 11, 0, MXT224E_BLEN_BATT, MXT224E_THRESHOLD_BATT, 2, 1,
 	10,
-	15,			/* MOVHYSTI */
+	2,			/* MOVHYSTI */
 	1, MXT224E_MOVFILTER_BATT, MXT224_MAX_MT_FINGERS, 5, 40, 10, 31, 3,
 	223, 1, 10, 10, 10, 10, 143, 40, 143, 80,
 	18, 15, 50, 50, MXT224E_NEXTTCHDI_NORMAL
@@ -5604,7 +5604,7 @@ static u8 t48_config_chrg_e[] = { PROCG_NOISESUPPRESSION_T48,
 	0, 0, 0, 6, 6, 0, 0, 64, 4, 64,
 	10, 0, 9, 5, 0, 15, 0, 20, 0, 0,
 	0, 0, 0, 0, MXT224E_BLEN_CHRG, MXT224E_THRESHOLD_CHRG, 2,
-	15,			/* MOVHYSTI */
+	2,			/* MOVHYSTI */
 	1, 47,
 	MXT224_MAX_MT_FINGERS, 5, 40, 235, 235, 10, 10, 160, 50, 143,
 	80, 18, 10, MXT224E_NEXTTCHDI_CHRG
@@ -5630,7 +5630,7 @@ static u8 t8_config_e[] = { GEN_ACQUISITIONCONFIG_T8,
 static u8 t9_config_e[] = { TOUCH_MULTITOUCHSCREEN_T9,
 	139, 0, 0, 19, 11, 0, MXT224E_BLEN_BATT, MXT224E_THRESHOLD_BATT, 2, 1,
 	10,
-	10,			/* MOVHYSTI */
+	2,			/* MOVHYSTI */
 	1, MXT224E_MOVFILTER_BATT, MXT224_MAX_MT_FINGERS, 5, 40, 10, 31, 3,
 	223, 1, 10, 10, 10, 10, 143, 40, 143, 80,
 	18, 15, 50, 50, 0
@@ -5639,7 +5639,7 @@ static u8 t9_config_e[] = { TOUCH_MULTITOUCHSCREEN_T9,
 static u8 t9_config_e[] = { TOUCH_MULTITOUCHSCREEN_T9,
 	139, 0, 0, 19, 11, 0, MXT224E_BLEN_BATT, MXT224E_THRESHOLD_BATT, 2, 1,
 	10,
-	15,			/* MOVHYSTI */
+	2,			/* MOVHYSTI */
 	1, MXT224E_MOVFILTER_BATT, MXT224_MAX_MT_FINGERS, 5, 40, 10, 31, 3,
 	223, 1, 10, 10, 10, 10, 143, 40, 143, 80,
 	18, 15, 50, 50, MXT224E_NEXTTCHDI_NORMAL
@@ -5689,7 +5689,7 @@ static u8 t48_config_chrg_e[] = { PROCG_NOISESUPPRESSION_T48,
 	0, 0, 0, 6, 6, 0, 0, 64, 4, 64,
 	10, 0, 9, 5, 0, 15, 0, 20, 0, 0,
 	0, 0, 0, 0, MXT224E_T48_BLEN_CHRG, MXT224E_THRESHOLD_CHRG, 2,
-	10,			/* MOVHYSTI */
+	2,			/* MOVHYSTI */
 	1, 47,
 	MXT224_MAX_MT_FINGERS, 5, 40, 240, 245, 10, 10, 148, 50, 143,
 	80, 18, 10, 0
@@ -5711,7 +5711,7 @@ static u8 t48_config_chrg_e[] = { PROCG_NOISESUPPRESSION_T48,
 	0, 0, 0, 6, 6, 0, 0, 64, 4, 64,
 	10, 0, 9, 5, 0, 15, 0, 20, 0, 0,
 	0, 0, 0, 0, 0, MXT224E_THRESHOLD_CHRG, 2,
-	15,			/* MOVHYSTI */
+	3,			/* MOVHYSTI */
 	1, 47,
 	MXT224_MAX_MT_FINGERS, 5, 40, 235, 235, 10, 10, 160, 50, 143,
 	80, 18, 10, 0
@@ -7480,9 +7480,9 @@ static struct platform_device *smdkc210_devices[] __initdata = {
 /* below temperature base on the celcius degree */
 struct s5p_platform_tmu u1_tmu_data __initdata = {
 	.ts = {
-		.stop_1st_throttle  = 61,
-		.start_1st_throttle = 64,
-		.stop_2nd_throttle  = 87,
+		.stop_1st_throttle  = 62,
+		.start_1st_throttle = 67,
+		.stop_2nd_throttle  = 80,
 		.start_2nd_throttle = 103,
 		.start_tripping     = 110,
 		.start_emergency    = 120,
@@ -7490,7 +7490,7 @@ struct s5p_platform_tmu u1_tmu_data __initdata = {
 		.start_mem_throttle = 85,
 	},
 	.cpufreq = {
-		.limit_1st_throttle  = 800000, /* 800MHz in KHz order */
+		.limit_1st_throttle  = 900000, /* 900MHz in KHz order */
 		.limit_2nd_throttle  = 200000, /* 200MHz in KHz order */
 	},
 };
