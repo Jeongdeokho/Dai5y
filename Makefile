@@ -369,6 +369,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -fno-delete-null-pointer-checks \
+                   -fno-schedule-insns2 \
 		   -pipe \
 		   -ffast-math \
 		   -marm -march=armv7-a \
