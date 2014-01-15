@@ -3,7 +3,7 @@ kdir=`readlink -f .`
 cd $kdir
 cd ..
 home=`readlink -f .`
-ramdisk=$home/ramdisk_m250l/work/cwm # cwm 6.0.15 update for ML1
+ramdisk=$home/ramdisk_m250l/cwm # cwm 6.0.15 update for ML1
 toolchain=$home/toolchain/linaro_4.8/bin/arm-linux-gnueabihf- # linaro 4.8.1 ( 2013/11 )
 version=Dev
 
