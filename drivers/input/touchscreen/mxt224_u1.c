@@ -215,7 +215,10 @@ static struct input_dev *slide2wake_dev;
 extern void request_suspend_state(int);
 extern int get_suspend_state(void);
 static struct wake_lock wl_s2w;
+#if defined(CONFIG_S2W)
 bool s2w_enabled = true;
+#endif
+bool s2w_enabled = false;
 static unsigned int wake_start = -1;
 static unsigned int wake_start_y = -100;
 static unsigned int x_lo;
