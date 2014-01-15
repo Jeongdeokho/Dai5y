@@ -29,22 +29,23 @@
  * It helps to keep variable names smaller, simpler
  */
 
-#define DEF_FREQUENCY_DOWN_DIFFERENTIAL		(14)
-#define DEF_FREQUENCY_UP_THRESHOLD		(94)
+#define DEF_FREQUENCY_DOWN_DIFFERENTIAL		(9)
+#define DEF_FREQUENCY_UP_THRESHOLD		(89)
 #define DEF_SAMPLING_DOWN_FACTOR		(1)
 #define MAX_SAMPLING_DOWN_FACTOR		(100000)
 
-#if defined(CONFIG_MACH_SLP_PQ)
-#define MICRO_FREQUENCY_DOWN_DIFFERENTIAL	(5)
-#define MICRO_FREQUENCY_UP_THRESHOLD		(85)
-#else
+//#if defined(CONFIG_MACH_SLP_PQ)
+#define MICRO_FREQUENCY_DOWN_DIFFERENTIAL	(4)
+#define MICRO_FREQUENCY_UP_THRESHOLD		(84)
+/* #else
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL	(14)
 #define MICRO_FREQUENCY_UP_THRESHOLD		(94)
-#endif
+#endif */
 
 #define MICRO_FREQUENCY_MIN_SAMPLE_RATE		(10000)
 #define MIN_FREQUENCY_UP_THRESHOLD		(11)
 #define MAX_FREQUENCY_UP_THRESHOLD		(100)
+#define FREQ_STEP        (35)
 
 /*
  * The polling frequency of this governor depends on the capability of
@@ -60,7 +61,7 @@
 
 static unsigned int min_sampling_rate;
 
-#define LATENCY_MULTIPLIER			(900)
+#define LATENCY_MULTIPLIER			(850)
 #define MIN_LATENCY_MULTIPLIER			(100)
 #define TRANSITION_LATENCY_LIMIT		(10 * 1000 * 1000)
 
@@ -139,7 +140,7 @@ static struct dbs_tuners {
 	.down_differential = DEF_FREQUENCY_DOWN_DIFFERENTIAL,
 	.ignore_nice = 0,
 	.powersave_bias = 0,
-	.freq_step = 100,
+	.freq_step = FREQ_STEP,
 };
 
 static inline cputime64_t get_cpu_idle_time_jiffy(unsigned int cpu,
