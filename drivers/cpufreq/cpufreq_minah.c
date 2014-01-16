@@ -1,5 +1,5 @@
 /*
- *  drivers/cpufreq/cpufreq_minA.c
+ *  drivers/cpufreq/cpufreq_minah.c
  *
  *  Copyright (C)  2001 Russell King
  *            (C)  2003 Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>.
@@ -36,7 +36,7 @@
 
 //#if defined(CONFIG_MACH_SLP_PQ)
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL	(4)
-#define MICRO_FREQUENCY_UP_THRESHOLD		(84)
+#define MICRO_FREQUENCY_UP_THRESHOLD		(89)
 /* #else
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL	(14)
 #define MICRO_FREQUENCY_UP_THRESHOLD		(94)
@@ -45,7 +45,7 @@
 #define MICRO_FREQUENCY_MIN_SAMPLE_RATE		(10000)
 #define MIN_FREQUENCY_UP_THRESHOLD		(11)
 #define MAX_FREQUENCY_UP_THRESHOLD		(100)
-#define FREQ_STEP        (35)
+#define FREQ_STEP        (100)
 
 /*
  * The polling frequency of this governor depends on the capability of
@@ -61,7 +61,7 @@
 
 static unsigned int min_sampling_rate;
 
-#define LATENCY_MULTIPLIER			(850)
+#define LATENCY_MULTIPLIER			(950)
 #define MIN_LATENCY_MULTIPLIER			(100)
 #define TRANSITION_LATENCY_LIMIT		(10 * 1000 * 1000)
 
