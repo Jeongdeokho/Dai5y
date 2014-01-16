@@ -171,8 +171,8 @@ static int __init lowmem_init(void)
 	unsigned int high_wmark = 0;
 	unsigned int low_wmark = 0;
 #endif */
-	task_free_register(&task_nb);
-	register_shrinker(&lowmem_shrinker);
+//	task_free_register(&task_nb);
+//	register_shrinker(&lowmem_shrinker);
 
 /* #ifdef CONFIG_ZRAM_FOR_ANDROID
 	for_each_zone(zone) {
