@@ -1,17 +1,6 @@
 /*
- *  drivers/cpufreq/cpufreq_pegasusq.c
- *
- *  Copyright (C)  2011 Samsung Electronics co. ltd
- *    ByungChang Cha <bc.cha@samsung.com>
- *
- *  Based on ondemand governor
- *  Copyright (C)  2001 Russell King
- *            (C)  2003 Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>.
- *                      Jun Nakajima <jun.nakajima@intel.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
+ *  drivers/cpufreq/cpufreq_hyeri.c
+ *  based on pegasusq
  */
 
 #include <linux/kernel.h>
@@ -40,7 +29,7 @@
  * runqueue average
  */
 
-#define RQ_AVG_TIMER_RATE	10
+#define RQ_AVG_TIMER_RATE	20
 
 struct runqueue_data {
 	unsigned int nr_run_avg;
@@ -210,11 +199,11 @@ static void do_dbs_timer(struct work_struct *work);
 static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 				unsigned int event);
 
-#ifndef CONFIG_CPU_FREQ_DEFAULT_GOV_PEGASUSQ
+#ifndef CONFIG_CPU_FREQ_DEFAULT_GOV_HYERI
 static
 #endif
-struct cpufreq_governor cpufreq_gov_pegasusq = {
-	.name                   = "pegasusq",
+struct cpufreq_governor cpufreq_gov_hyeri = {
+	.name                   = "hyeri",
 	.governor               = cpufreq_governor_dbs,
 	.owner                  = THIS_MODULE,
 };
@@ -327,7 +316,7 @@ static void apply_hotplug_lock(void)
 	queue_work_on(dbs_info->cpu, dvfs_workqueue, work);
 }
 
-int cpufreq_pegasusq_cpu_lock(int num_core)
+int cpufreq_hyeri_cpu_lock(int num_core)
 {
 	int prev_lock;
 
@@ -348,7 +337,7 @@ int cpufreq_pegasusq_cpu_lock(int num_core)
 	return 0;
 }
 
-int cpufreq_pegasusq_cpu_unlock(int num_core)
+int cpufreq_hyeri_cpu_unlock(int num_core)
 {
 	int prev_lock = atomic_read(&g_hotplug_lock);
 
@@ -363,7 +352,7 @@ int cpufreq_pegasusq_cpu_unlock(int num_core)
 	return 0;
 }
 
-void cpufreq_pegasusq_min_cpu_lock(unsigned int num_core)
+void cpufreq_hyeri_min_cpu_lock(unsigned int num_core)
 {
 	int online, flag;
 	struct cpu_dbs_info_s *dbs_info;
@@ -378,7 +367,7 @@ void cpufreq_pegasusq_min_cpu_lock(unsigned int num_core)
 	queue_work_on(dbs_info->cpu, dvfs_workqueue, &dbs_info->up_work);
 }
 
-void cpufreq_pegasusq_min_cpu_unlock(void)
+void cpufreq_hyeri_min_cpu_unlock(void)
 {
 	int online, lock, flag;
 	struct cpu_dbs_info_s *dbs_info;
@@ -757,9 +746,9 @@ static ssize_t store_min_cpu_lock(struct kobject *a, struct attribute *b,
 	if (ret != 1)
 		return -EINVAL;
 	if (input == 0)
-		cpufreq_pegasusq_min_cpu_unlock();
+		cpufreq_hyeri_min_cpu_unlock();
 	else
-		cpufreq_pegasusq_min_cpu_lock(input);
+		cpufreq_hyeri_min_cpu_lock(input);
 	return count;
 }
 
@@ -777,14 +766,14 @@ static ssize_t store_hotplug_lock(struct kobject *a, struct attribute *b,
 	prev_lock = atomic_read(&dbs_tuners_ins.hotplug_lock);
 
 	if (prev_lock)
-		cpufreq_pegasusq_cpu_unlock(prev_lock);
+		cpufreq_hyeri_cpu_unlock(prev_lock);
 
 	if (input == 0) {
 		atomic_set(&dbs_tuners_ins.hotplug_lock, 0);
 		return count;
 	}
 
-	ret = cpufreq_pegasusq_cpu_lock(input);
+	ret = cpufreq_hyeri_cpu_lock(input);
 	if (ret) {
 		printk(KERN_ERR "[HOTPLUG] already locked with smaller value %d < %d\n",
 			atomic_read(&g_hotplug_lock), input);
@@ -862,7 +851,7 @@ static struct attribute *dbs_attributes[] = {
 
 static struct attribute_group dbs_attr_group = {
 	.attrs = dbs_attributes,
-	.name = "pegasusq",
+	.name = "hyeri",
 };
 
 /************************** sysfs end ************************/
@@ -1348,7 +1337,7 @@ static struct notifier_block reboot_notifier = {
 static struct early_suspend early_suspend;
 unsigned int prev_freq_step;
 unsigned int prev_sampling_rate;
-static void cpufreq_pegasusq_early_suspend(struct early_suspend *h)
+static void cpufreq_hyeri_early_suspend(struct early_suspend *h)
 {
 #if EARLYSUSPEND_HOTPLUGLOCK
 	dbs_tuners_ins.early_suspend =
@@ -1365,7 +1354,7 @@ static void cpufreq_pegasusq_early_suspend(struct early_suspend *h)
 	stop_rq_work();
 #endif
 }
-static void cpufreq_pegasusq_late_resume(struct early_suspend *h)
+static void cpufreq_hyeri_late_resume(struct early_suspend *h)
 {
 #if EARLYSUSPEND_HOTPLUGLOCK
 	atomic_set(&g_hotplug_lock, dbs_tuners_ins.early_suspend);
@@ -1514,14 +1503,14 @@ static int __init cpufreq_gov_dbs_init(void)
 		goto err_queue;
 	}
 
-	ret = cpufreq_register_governor(&cpufreq_gov_pegasusq);
+	ret = cpufreq_register_governor(&cpufreq_gov_hyeri);
 	if (ret)
 		goto err_reg;
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	early_suspend.level = EARLY_SUSPEND_LEVEL_DISABLE_FB;
-	early_suspend.suspend = cpufreq_pegasusq_early_suspend;
-	early_suspend.resume = cpufreq_pegasusq_late_resume;
+	early_suspend.suspend = cpufreq_hyeri_early_suspend;
+	early_suspend.resume = cpufreq_hyeri_late_resume;
 #endif
 
 	return ret;
@@ -1537,17 +1526,17 @@ err_hist:
 
 static void __exit cpufreq_gov_dbs_exit(void)
 {
-	cpufreq_unregister_governor(&cpufreq_gov_pegasusq);
+	cpufreq_unregister_governor(&cpufreq_gov_hyeri);
 	destroy_workqueue(dvfs_workqueue);
 	kfree(hotplug_history);
 	kfree(rq_data);
 }
 
 MODULE_AUTHOR("ByungChang Cha <bc.cha@samsung.com>");
-MODULE_DESCRIPTION("'cpufreq_pegasusq' - A dynamic cpufreq/cpuhotplug governor");
+MODULE_DESCRIPTION("'cpufreq_hyeri' - A dynamic cpufreq/cpuhotplug governor");
 MODULE_LICENSE("GPL");
 
-#ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_PEGASUSQ
+#ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_HYERI
 fs_initcall(cpufreq_gov_dbs_init);
 #else
 module_init(cpufreq_gov_dbs_init);

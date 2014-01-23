@@ -27,3 +27,4 @@ arch/*/include/generated
 patches-*
 # user
 pack/*
+gsd_defconfig

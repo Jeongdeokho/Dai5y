@@ -995,6 +995,12 @@ config TOUCHSCREEN_ATMEL_MXT540S
 	  To compile this driver as a module, choose M here: the
 	  module will be called mxt540s.
 
+config Slide_2_Wake
+	tristate "left to right, screen on"
+	default y
+	help
+If unuse, say N.
+
 source "drivers/input/touchscreen/wacom/Kconfig"
 
 endif

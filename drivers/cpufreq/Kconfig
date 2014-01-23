@@ -126,9 +126,9 @@ config CPU_FREQ_DEFAULT_GOV_ADAPTIVE
 	  'adaptive' governor for latency-sensitive workloads and demanding
 	  performance.
 
-config CPU_FREQ_DEFAULT_GOV_PEGASUSQ
-	bool "pegasusq"
-	select CPU_FREQ_GOV_PEGASUSQ
+config CPU_FREQ_DEFAULT_GOV_HYERI
+	bool "hyeri"
+	select CPU_FREQ_GOV_HYERI
 
 endchoice
 
@@ -276,8 +276,8 @@ config CPU_FREQ_GOV_ADAPTIVE
 
 	  If in doubt, say N.
 
-config CPU_FREQ_GOV_PEGASUSQ
-	tristate "'pegasusq' cpufreq policy governor"
+config CPU_FREQ_GOV_HYERI
+	tristate "'hyeri' cpufreq policy governor"
 
 config CPU_FREQ_GOV_SLP
 	tristate "'slp' cpufreq policy governor"

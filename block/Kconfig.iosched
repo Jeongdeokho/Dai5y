@@ -75,6 +75,12 @@ config IOSCHED_SIO
           basic merging, trying to keep a minimum overhead. It is aimed
           mainly for aleatory access devices (eg: flash devices).
 
+config IOSCHED_GSD
+        tristate "Girl's day IO scheduler"
+        default y
+        ---help---
+          Based on sio
+
 choice
 	prompt "Default I/O scheduler"
 	default DEFAULT_SIO
@@ -97,6 +103,9 @@ choice
         config DEFAULT_SIO
                 bool "SIO" if IOSCHED_SIO=y
 
+        config DEFAULT_GSD
+                bool "GSD" if IOSCHED_GSD=y
+
 
 endchoice
 
@@ -107,6 +116,7 @@ config DEFAULT_IOSCHED
 	default "bfq" if DEFAULT_BFQ
 	default "noop" if DEFAULT_NOOP
         default "sio" if DEFAULT_SIO
+        default "gsd" if DEFAULT_GSD
 
 endmenu
 
