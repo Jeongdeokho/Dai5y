@@ -331,8 +331,8 @@ static void __init set_volt_table(void)
 	 * If ASV group is S, can not support 1.4GHz
 	 * Disabling table entry
 	 */
-	if ((asv_group == 0) || !for_1400)
-		exynos4210_freq_table[L0].frequency = CPUFREQ_ENTRY_INVALID;
+//	if ((asv_group == 0) || !for_1400)
+//		exynos4210_freq_table[L0].frequency = CPUFREQ_ENTRY_INVALID;
 
 	if (for_1000)
 		exynos4210_freq_table[L1].frequency = CPUFREQ_ENTRY_INVALID;

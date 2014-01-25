@@ -151,7 +151,7 @@ static unsigned int get_nr_run_avg(void)
 #define DEF_MAX_CPU_LOCK			(0)
 #define DEF_MIN_CPU_LOCK			(0)
 #define DEF_CPU_UP_FREQ				(500000)
-#define DEF_CPU_DOWN_FREQ			(150000)
+#define DEF_CPU_DOWN_FREQ			(200000)
 #define DEF_UP_NR_CPUS				(1)
 #define DEF_CPU_UP_RATE				(10)
 #define DEF_CPU_DOWN_RATE			(20)
@@ -177,9 +177,9 @@ static int hotplug_rq[4][2] = {
 
 static int hotplug_freq[4][2] = {
 	{0, 500000},
-	{150000, 500000},
-	{150000, 500000},
-	{150000, 0}
+	{20000, 500000},
+	{20000, 500000},
+	{20000, 0}
 };
 #else
 static int hotplug_rq[4][2] = {
@@ -188,9 +188,9 @@ static int hotplug_rq[4][2] = {
 
 static int hotplug_freq[4][2] = {
 	{0, 500000},
-	{150000, 500000},
-	{150000, 500000},
-	{150000, 0}
+	{20000, 500000},
+	{20000, 500000},
+	{20000, 0}
 };
 #endif
 
