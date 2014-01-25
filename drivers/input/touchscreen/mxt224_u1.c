@@ -93,7 +93,7 @@
 #define MAX_USING_FINGER_NUM 10
 
 #define MXT224_AUTOCAL_WAIT_TIME		2000
-#define TOUCH_LOCK_FREQ			160000
+#define TOUCH_LOCK_FREQ			200000
 
 #if defined(U1_EUR_TARGET)
 static bool gbfilter;
@@ -3639,8 +3639,8 @@ static int __devinit mxt224_probe(struct i2c_client *client,
 		goto err_backup;
 
 	wake_lock_init(&wl_s2w, WAKE_LOCK_SUSPEND, "slide2wake");
-	x_lo = pdata->max_x / 10 * 2;	/* 10% display width */ /* test 20 % */
-	x_hi = pdata->max_x / 10 * 7;	/* 90% display width */ /* test 70 % */
+	x_lo = pdata->max_x / 10 * 1;	/* 10% display width */ /* test 10 % */
+	x_hi = pdata->max_x / 10 * 3;	/* 90% display width */ /* test 30 % */
 	y_tolerance = pdata->max_y / 10 * 3 / 2;
 	mxt224_gpio_sleep_mode(s2w_enabled);
 
